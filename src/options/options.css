@@ -1,0 +1,27 @@
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg-base);
+}
+
+.options {
+  min-height: 100vh;
+  color: var(--text);
+  font-family: var(--font-sans);
+  max-width: 720px;
+  margin: 0 auto;
+  padding: var(--sp-6) var(--sp-5);
+}
+
+.options__title {
+  font-family: var(--font-mono);
+  font-size: var(--fs-h1);
+  font-weight: 600;
+  margin: 0 0 var(--sp-2);
+}
+
+.options__lede {
+  color: var(--text-muted);
+  margin: 0;
+}

@@ -1,0 +1,78 @@
+/* LeetStreak design tokens — deep-ink + amber "streak flame".
+   Not GitHub-green-on-black. Warmth/fire against a calm dark tool surface. */
+
+:root {
+  /* Surfaces */
+  --bg-base: #0f1115; /* app base, warm-leaning ink, not pure black */
+  --bg-raised: #16191f; /* panels */
+  --bg-card: #1e222a; /* cards, inputs */
+  --border: rgba(255, 255, 255, 0.06);
+  --border-strong: rgba(255, 255, 255, 0.12);
+
+  /* Text */
+  --text: #eceae4; /* primary, slightly warm off-white */
+  --text-muted: #9ba1ad;
+  --text-faint: #6b7280;
+
+  /* Flame accent system */
+  --flame: #f5a524; /* streak / amber */
+  --flame-hot: #ff7a1a; /* flame gradient top / high streak */
+  --flame-soft: rgba(245, 165, 36, 0.14); /* fills, heatmap low cells, hovers */
+  --flame-glow: rgba(245, 165, 36, 0.35);
+
+  /* Semantic — success is amber, NOT green; it reinforces the identity */
+  --ok: #f5a524;
+  --danger: #f26d6d;
+  --danger-soft: rgba(242, 109, 109, 0.14);
+
+  /* Type */
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace;
+  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  /* Scale */
+  --fs-streak: 40px;
+  --fs-h1: 20px;
+  --fs-body: 14px;
+  --fs-small: 12px;
+  --fs-label: 11px; /* mono uppercase labels, letter-spaced */
+
+  /* Radius + spacing rhythm */
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 14px;
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --sp-6: 32px;
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-fast: 140ms;
+  --dur-med: 260ms;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+.label {
+  font-family: var(--font-mono);
+  font-size: var(--fs-label);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
