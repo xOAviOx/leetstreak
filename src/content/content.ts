@@ -1,0 +1,61 @@
+/**
+ * ISOLATED-world bridge, injected at document_start.
+ *
+ * Responsibilities:
+ *   1. Inject the MAIN-world interceptor into the page (it needs the page's own
+ *      window.fetch / XMLHttpRequest, which this isolated world can't reach).
+ *   2. Receive the interceptor's postMessage, validate it hard, relay to the SW.
+ *   3. Host the on-page toast (added in Phase 4).
+ */
+import { PAGE_MSG } from '../lib/types.ts';
+import type { PageMessage, RuntimeMessage } from '../lib/types.ts';
+
+const TRUSTED_ORIGIN = 'https://leetcode.com';
+
+injectInterceptor();
+listenForAccepted();
+
+/**
+ * Load the interceptor into the page's MAIN world via a <script> tag. Because
+ * interceptor.js is a web_accessible_resource, this is exempt from the page CSP,
+ * and its URL resolves against the extension origin. LeetCode's submit requests
+ * happen long after page load, so slight async loading here is harmless.
+ */
+function injectInterceptor(): void {
+  try {
+    const script = document.createElement('script');
+    script.src = chrome.runtime.getURL('interceptor.js');
+    script.async = false;
+    script.onload = () => script.remove();
+    (document.head || document.documentElement).appendChild(script);
+  } catch (err) {
+    console.error('[LeetStreak] failed to inject interceptor:', err);
+  }
+}
+
+function listenForAccepted(): void {
+  window.addEventListener('message', (event: MessageEvent) => {
+    // Only accept messages this page posted to itself.
+    if (event.source !== window) return;
+    if (event.origin !== TRUSTED_ORIGIN) return;
+
+    const data = event.data as Partial<PageMessage> | null;
+    if (!data || data[PAGE_MSG] !== true) return;
+    if (data.type !== 'SUBMISSION_ACCEPTED' || !data.payload) return;
+
+    const message: RuntimeMessage = {
+      type: 'SUBMISSION_ACCEPTED',
+      payload: data.payload,
+    };
+
+    chrome.runtime.sendMessage(message).catch((err: unknown) => {
+      // SW normally wakes on sendMessage; a reject here means the context is
+      // gone (e.g. extension reloaded). Nothing user-facing to do here yet.
+      console.debug('[LeetStreak] relay failed:', err);
+    });
+  });
+
+  console.debug('[LeetStreak] content bridge listening (ISOLATED world)');
+}
+
+export {};
