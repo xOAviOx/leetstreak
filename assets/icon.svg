@@ -1,0 +1,17 @@
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="flame" x1="64" y1="14" x2="64" y2="116" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FF7A1A"/>
+      <stop offset="0.5" stop-color="#F5A524"/>
+      <stop offset="1" stop-color="#F5A524"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="64" cy="74" r="46" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F5A524" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#F5A524" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="128" height="128" rx="28" fill="#0F1115"/>
+  <rect x="0.5" y="0.5" width="127" height="127" rx="27.5" stroke="#FFFFFF" stroke-opacity="0.06"/>
+  <circle cx="64" cy="74" r="42" fill="url(#glow)"/>
+  <path d="M64 14c6.4 16.5-4.3 24.5-11.2 33C48 53 40.5 62 40.5 75.5 40.5 96 54.4 112 70 112s24-15.3 24-35c0-10.7-5.3-19.7-12.3-27.2 2.1 6.9.5 13.9-4.8 17 2.7-11.7-3.2-24.5-14.9-32.5 3.2 9 1.1 16-4.8 20.8C58.9 47.3 68.8 32 64 14Z" fill="url(#flame)"/>
+</svg>
