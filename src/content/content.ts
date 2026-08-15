@@ -12,6 +12,7 @@ import type { PageMessage, RuntimeMessage } from '../lib/types.ts';
 
 const TRUSTED_ORIGIN = 'https://leetcode.com';
 
+console.log('[LeetStreak] content script running @', location.href);
 injectInterceptor();
 listenForAccepted();
 
@@ -23,11 +24,17 @@ listenForAccepted();
  */
 function injectInterceptor(): void {
   try {
+    const src = chrome.runtime.getURL('interceptor.js');
     const script = document.createElement('script');
-    script.src = chrome.runtime.getURL('interceptor.js');
+    script.src = src;
     script.async = false;
-    script.onload = () => script.remove();
+    script.onload = () => {
+      console.log('[LeetStreak] interceptor script loaded');
+      script.remove();
+    };
+    script.onerror = (e) => console.error('[LeetStreak] interceptor script FAILED to load:', src, e);
     (document.head || document.documentElement).appendChild(script);
+    console.log('[LeetStreak] injecting interceptor:', src);
   } catch (err) {
     console.error('[LeetStreak] failed to inject interceptor:', err);
   }
@@ -48,14 +55,15 @@ function listenForAccepted(): void {
       payload: data.payload,
     };
 
+    console.log('[LeetStreak] relaying accepted -> service worker:', data.payload.submissionId);
     chrome.runtime.sendMessage(message).catch((err: unknown) => {
       // SW normally wakes on sendMessage; a reject here means the context is
       // gone (e.g. extension reloaded). Nothing user-facing to do here yet.
-      console.debug('[LeetStreak] relay failed:', err);
+      console.error('[LeetStreak] relay failed:', err);
     });
   });
 
-  console.debug('[LeetStreak] content bridge listening (ISOLATED world)');
+  console.log('[LeetStreak] content bridge listening (ISOLATED world)');
 }
 
 export {};

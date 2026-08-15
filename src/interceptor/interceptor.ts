@@ -17,6 +17,17 @@ import { PAGE_MSG } from '../lib/types.ts';
 import type { PageMessage } from '../lib/types.ts';
 import { extractAccepted, CHECK_RE } from '../lib/detect.ts';
 
+// Loud diagnostics while we lock down detection on the live site. Uses
+// console.log (not console.debug, which DevTools hides by default). Flip off
+// once the live gate passes.
+const DEBUG = true;
+// URLs worth surfacing during a submission, so endpoint drift is visible even
+// if our precise CHECK_RE stops matching.
+const HINT_RE = /submit|submission|check|interpret/i;
+const log = (...a: unknown[]): void => {
+  if (DEBUG) console.log('[LeetStreak]', ...a);
+};
+
 // Guard against double-injection (SPA navigations, HMR, etc.).
 declare global {
   interface Window {
@@ -35,12 +46,28 @@ function install(): void {
   const seen = new Set<string>();
 
   const emit = (urlLike: string, bodyText: string): void => {
+    // Diagnostic: we only reach here for check URLs. Show what the verdict is.
+    try {
+      const d = JSON.parse(bodyText) as { state?: unknown; status_msg?: unknown; code?: unknown };
+      log('check response:', {
+        url: urlLike,
+        state: d.state,
+        status_msg: d.status_msg,
+        hasCode: typeof d.code === 'string',
+      });
+    } catch {
+      log('check response (unparseable body):', urlLike);
+    }
+
     const payload = extractAccepted(urlLike, bodyText, {
       href: window.location.href,
       pathname: window.location.pathname,
     });
     if (!payload) return;
-    if (seen.has(payload.submissionId)) return;
+    if (seen.has(payload.submissionId)) {
+      log('duplicate accepted, skipping:', payload.submissionId);
+      return;
+    }
     seen.add(payload.submissionId);
 
     const message: PageMessage = {
@@ -48,12 +75,13 @@ function install(): void {
       type: 'SUBMISSION_ACCEPTED',
       payload,
     };
+    log('✅ accepted, posting to bridge:', payload.submissionId, payload.titleSlug);
     window.postMessage(message, window.location.origin);
   };
 
   patchFetch(emit);
   patchXhr(emit);
-  console.debug('[LeetStreak] interceptor armed (MAIN world)');
+  console.log('[LeetStreak] interceptor armed (MAIN world) @', window.location.href);
 }
 
 function patchFetch(emit: (url: string, body: string) => void): void {
@@ -70,16 +98,17 @@ function patchFetch(emit: (url: string, body: string) => void): void {
           : input instanceof URL
             ? input.href
             : (input as Request).url;
+      if (url && HINT_RE.test(url)) log('fetch:', url);
       if (url && CHECK_RE.test(url)) {
         // Clone so we never consume the body the page still needs to read.
         res
           .clone()
           .text()
           .then((text) => emit(url, text))
-          .catch(() => {});
+          .catch((e) => log('fetch clone/read error:', e));
       }
-    } catch {
-      /* never let our observation break the page's request */
+    } catch (e) {
+      log('fetch patch error:', e); // never let our observation break the page
     }
     return res;
   };
@@ -108,13 +137,36 @@ function patchXhr(emit: (url: string, body: string) => void): void {
     this.addEventListener('load', () => {
       try {
         const url = this.__lsUrl ?? '';
-        if (url && CHECK_RE.test(url)) emit(url, this.responseText);
-      } catch {
-        /* ignore */
+        if (!url) return;
+        if (HINT_RE.test(url)) log('xhr:', url);
+        if (!CHECK_RE.test(url)) return;
+        // responseText throws when responseType is json/blob/arraybuffer, so
+        // pick the right accessor for how LeetCode configured this request.
+        const body = readXhrBody(this);
+        if (body != null) emit(url, body);
+      } catch (e) {
+        log('xhr load handler error:', e);
       }
     });
     return (originalSend as (...a: unknown[]) => void).apply(this, args);
   };
+}
+
+/** Read an XHR body as text regardless of responseType. Null if not readable. */
+function readXhrBody(xhr: XMLHttpRequest): string | null {
+  const type = xhr.responseType;
+  try {
+    if (type === '' || type === 'text') return xhr.responseText;
+    if (type === 'json') return JSON.stringify(xhr.response);
+    return null; // blob / arraybuffer / document — not a check response we parse
+  } catch {
+    // Last resort: some engines still expose responseText.
+    try {
+      return xhr.responseText;
+    } catch {
+      return null;
+    }
+  }
 }
 
 export {};

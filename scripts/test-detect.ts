@@ -73,14 +73,30 @@ function originalFetch(input: unknown): Promise<unknown> {
 
 class FakeXHR {
   private onLoad: (() => void) | null = null;
+  // Match the real XHR default so readXhrBody picks the responseText path.
+  responseType: '' | 'text' | 'json' = '';
   responseText = '';
+  response: unknown = null;
   open(_method: string, _url: string | URL): void {}
   send(): void {}
   addEventListener(type: string, cb: () => void): void {
     if (type === 'load') this.onLoad = cb;
   }
+  /** Simulate a text-typed response (responseType ''). */
   fireLoad(body: string): void {
     this.responseText = body;
+    this.onLoad?.();
+  }
+  /** Simulate a json-typed response (responseText would throw in a real XHR). */
+  fireLoadJson(body: string): void {
+    this.responseType = 'json';
+    this.response = JSON.parse(body);
+    Object.defineProperty(this, 'responseText', {
+      get() {
+        throw new Error('InvalidStateError: responseText not available for json responseType');
+      },
+      configurable: true,
+    });
     this.onLoad?.();
   }
 }
@@ -124,6 +140,16 @@ for (const body of [pendingBody, acceptedBody(987654321), acceptedBody(987654321
 await flush();
 assert.equal(posted.length, 2, 'xhr path: second accepted submission emits exactly once');
 assert.equal(posted[1].payload.submissionId, '987654321');
-console.log('  ✓ xhr path: accepted verdict emits exactly once');
+console.log('  ✓ xhr path (responseType text): accepted verdict emits exactly once');
+
+// XHR path with responseType 'json' (responseText would throw) — submission C.
+const jsonXhr = new FakeXHR();
+jsonXhr.open('GET', checkUrl('555000555'));
+jsonXhr.send();
+jsonXhr.fireLoadJson(acceptedBody(555000555));
+await flush();
+assert.equal(posted.length, 3, 'xhr path: json responseType is read via response, not responseText');
+assert.equal(posted[2].payload.submissionId, '555000555');
+console.log('  ✓ xhr path (responseType json): read via response, emits exactly once');
 
 console.log('\nAll detection tests passed.');

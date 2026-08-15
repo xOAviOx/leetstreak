@@ -35,6 +35,7 @@ chrome.runtime.onMessage.addListener((message: RuntimeMessage, _sender, sendResp
 });
 
 async function handleAccepted(payload: AcceptedSubmissionPayload): Promise<void> {
+  console.log('[LeetStreak] SW received SUBMISSION_ACCEPTED:', payload.submissionId, payload.titleSlug);
   const isNew = await claimSubmission(payload.submissionId);
   if (!isNew) {
     console.debug('[LeetStreak] duplicate submission ignored:', payload.submissionId);
