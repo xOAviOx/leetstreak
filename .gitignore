@@ -1,0 +1,16 @@
+node_modules/
+dist/
+*.local
+.DS_Store
+*.log
+.vite/
+leetstreak-*.zip
+
+# Generated interceptor bundle (built into public/ before the crxjs pass)
+public/interceptor.js
+public/interceptor.js.map
+
+# Never commit real secrets
+.env
+.env.*
+!.env.example

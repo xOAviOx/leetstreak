@@ -1,0 +1,29 @@
+{
+  "name": "leetstreak",
+  "version": "0.1.0",
+  "description": "Auto-push your accepted LeetCode solutions to GitHub.",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build --config vite.interceptor.config.ts && vite build",
+    "typecheck": "tsc --noEmit",
+    "test": "node scripts/test-detect.ts",
+    "preview": "vite preview",
+    "icons": "node scripts/generate-icons.mjs",
+    "zip": "node scripts/zip.mjs"
+  },
+  "dependencies": {
+    "@preact/signals": "^2.0.4",
+    "preact": "^10.26.4"
+  },
+  "devDependencies": {
+    "@crxjs/vite-plugin": "^2.0.0-beta.36",
+    "@preact/preset-vite": "^2.10.1",
+    "@types/chrome": "^0.0.313",
+    "@types/node": "^22.13.0",
+    "sharp": "^0.34.1",
+    "typescript": "^5.7.3",
+    "vite": "^6.3.4"
+  }
+}
