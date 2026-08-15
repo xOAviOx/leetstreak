@@ -6,12 +6,19 @@
  */
 import type { AcceptedSubmissionPayload } from './types.ts';
 
-export const CHECK_RE = /\/submissions\/detail\/(\d+)\/check\/?$/;
+// Matches both the legacy `/submissions/detail/{id}/check/` and the current
+// `/submissions/detail/{id}/v2/check/` endpoints. LeetCode moved to v2; the
+// optional `v2/` segment keeps us working on either.
+export const CHECK_RE = /\/submissions\/detail\/(\d+)\/(?:v2\/)?check\/?$/;
+
+/** LeetCode's status_code for an accepted verdict. */
+export const ACCEPTED_STATUS_CODE = 10;
 
 /** The subset of LeetCode's check response we rely on. Typed at the boundary. */
 export interface RawCheckResponse {
   state?: string;
   status_msg?: string;
+  status_code?: number;
   submission_id?: string | number;
   code?: string;
   lang?: string;
@@ -49,8 +56,12 @@ export function extractAccepted(
     return null; // not JSON / partial body
   }
 
+  // Only the terminal (SUCCESS) poll carries the verdict. Accept on either the
+  // human-readable status_msg or the numeric status_code, so a field rename on
+  // one doesn't break us.
   if (data.state !== 'SUCCESS') return null;
-  if (data.status_msg !== 'Accepted') return null;
+  const isAccepted = data.status_msg === 'Accepted' || data.status_code === ACCEPTED_STATUS_CODE;
+  if (!isAccepted) return null;
 
   const id = String(data.submission_id ?? match[1]);
   if (!id) return null;

@@ -40,6 +40,17 @@ const ctx = { href: ORIGIN + PROBLEM_PATH, pathname: PROBLEM_PATH };
 
 assert.equal(extractAccepted(`${ORIGIN}/graphql`, acceptedBody(1), ctx), null, 'non-check URL ignored');
 assert.equal(extractAccepted(checkUrl('1'), pendingBody, ctx), null, 'pending state ignored');
+
+// v2 endpoint (current LeetCode) must be recognized, both absolute and relative.
+const v2 = extractAccepted(`${ORIGIN}/submissions/detail/42/v2/check/`, acceptedBody(42), ctx);
+assert.ok(v2, 'v2 check endpoint recognized (absolute)');
+assert.equal(v2.submissionId, '42');
+assert.ok(extractAccepted('/submissions/detail/42/v2/check/', acceptedBody(42), ctx), 'v2 relative URL recognized');
+// Accept via numeric status_code when status_msg is absent (field-rename resilience).
+assert.ok(
+  extractAccepted(checkUrl('7'), JSON.stringify({ state: 'SUCCESS', status_code: 10, submission_id: 7 }), ctx),
+  'accepted via status_code 10 when status_msg missing',
+);
 assert.equal(extractAccepted(checkUrl('1'), wrongBody, ctx), null, 'wrong answer ignored');
 assert.equal(extractAccepted(checkUrl('1'), '{not json', ctx), null, 'malformed body ignored');
 

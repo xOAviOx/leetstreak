@@ -46,14 +46,18 @@ function install(): void {
   const seen = new Set<string>();
 
   const emit = (urlLike: string, bodyText: string): void => {
-    // Diagnostic: we only reach here for check URLs. Show what the verdict is.
+    // Diagnostic: we only reach here for check URLs. Show the verdict + the
+    // full top-level shape so any v2 field renames are immediately visible.
     try {
-      const d = JSON.parse(bodyText) as { state?: unknown; status_msg?: unknown; code?: unknown };
+      const d = JSON.parse(bodyText) as Record<string, unknown>;
       log('check response:', {
         url: urlLike,
+        keys: Object.keys(d),
         state: d.state,
         status_msg: d.status_msg,
+        status_code: d.status_code,
         hasCode: typeof d.code === 'string',
+        codeLen: typeof d.code === 'string' ? d.code.length : 0,
       });
     } catch {
       log('check response (unparseable body):', urlLike);
