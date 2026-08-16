@@ -84,14 +84,21 @@ async function handleAccepted(
 ): Promise<void> {
   console.log('[LeetStreak] SW received SUBMISSION_ACCEPTED:', payload.submissionId, payload.titleSlug);
 
-  // Dedupe first — storage-backed so it survives SW restarts and repeated polls.
+  const settings = await getSettings();
+
+  // Master switch: when paused, do nothing — don't claim, queue, or push, so a
+  // later re-enable + re-submit behaves cleanly.
+  if (!settings.enabled) {
+    console.debug('[LeetStreak] paused; ignoring submission:', payload.submissionId);
+    return;
+  }
+
+  // Dedupe — storage-backed so it survives SW restarts and repeated polls.
   const isNew = await claimSubmission(payload.submissionId);
   if (!isNew) {
     console.debug('[LeetStreak] duplicate submission ignored:', payload.submissionId);
     return;
   }
-
-  const settings = await getSettings();
 
   // Not connected yet, or the user turned auto-sync off: park it so nothing is
   // lost. A later "Sync now" (or Phase 5's drain) picks it up. Keep the claim —
