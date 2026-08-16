@@ -1,4 +1,4 @@
-# 🔥 LeetStreak
+#  LeetStreak
 
 **Auto-push your accepted LeetCode solutions to GitHub — and keep your streak alive.**
 
