@@ -95,3 +95,20 @@ export interface QueueItem {
   lastError: string | null;
   enqueuedAt: number;
 }
+
+// ----- Background <-> UI query responses -----
+
+/** Snapshot the popup/options render from. Never carries the raw token. */
+export interface StateSnapshot {
+  configured: boolean;
+  settings: Omit<Settings, 'token'> & { hasToken: boolean };
+  stats: Stats;
+  queueLength: number;
+}
+
+/** Result of a SYNC_NOW drain. */
+export interface SyncResult {
+  drained: number;
+  remaining: number;
+  error?: string;
+}

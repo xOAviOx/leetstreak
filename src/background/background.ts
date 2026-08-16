@@ -16,6 +16,8 @@ import type {
   SyncRecord,
   QueueItem,
   ToastState,
+  StateSnapshot,
+  SyncResult,
 } from '../lib/types.ts';
 import {
   getSettings,
@@ -184,7 +186,7 @@ async function pushSubmission(
 }
 
 /** Best-effort attempt to push everything sitting in the retry queue. */
-async function drainQueue(): Promise<{ drained: number; remaining: number; error?: string }> {
+async function drainQueue(): Promise<SyncResult> {
   const settings = await getSettings();
   if (!isConfigured(settings)) {
     return { drained: 0, remaining: (await getQueue()).length, error: 'GitHub not connected' };
@@ -215,12 +217,7 @@ async function drainQueue(): Promise<{ drained: number; remaining: number; error
 }
 
 /** Snapshot for the popup/options UI. Never leaks the raw token. */
-async function getState(): Promise<{
-  configured: boolean;
-  settings: Omit<Settings, 'token'> & { hasToken: boolean };
-  stats: Awaited<ReturnType<typeof getStats>>;
-  queueLength: number;
-}> {
+async function getState(): Promise<StateSnapshot> {
   const [settings, stats, queue] = await Promise.all([getSettings(), getStats(), getQueue()]);
   const { token, ...rest } = settings;
   return {
