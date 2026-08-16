@@ -56,3 +56,40 @@ export interface ToastMessage {
 }
 
 export type BackgroundToContent = ToastMessage;
+
+// ----- Persisted state (chrome.storage.local) -----
+
+export interface Settings {
+  /** Fine-grained GitHub PAT. Lives ONLY here; never logged or sent elsewhere. */
+  token: string | null;
+  repoOwner: string | null;
+  repoName: string | null;
+  /** Resolved default branch (main/master). Null until first resolved. */
+  branch: string | null;
+  /** Resolved GitHub login for the token, for display. */
+  githubLogin: string | null;
+  autoSync: boolean;
+}
+
+export interface SyncRecord {
+  submissionId: string;
+  slug: string;
+  title: string;
+  commitUrl: string | null;
+  at: number; // epoch ms
+}
+
+export interface Stats {
+  totalSynced: number;
+  last: SyncRecord | null;
+  /** 'YYYY-MM-DD' (local) per synced day — powers streak + heatmap (Phase 5). */
+  syncedDates: string[];
+}
+
+/** A push that failed and is waiting for retry (Phase 5 drains this). */
+export interface QueueItem {
+  payload: AcceptedSubmissionPayload;
+  attempts: number;
+  lastError: string | null;
+  enqueuedAt: number;
+}
