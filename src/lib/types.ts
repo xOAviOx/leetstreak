@@ -69,6 +69,8 @@ export interface Settings {
   /** Resolved GitHub login for the token, for display. */
   githubLogin: string | null;
   autoSync: boolean;
+  /** Master switch. When false, accepted submissions are ignored entirely. */
+  enabled: boolean;
 }
 
 export interface SyncRecord {
