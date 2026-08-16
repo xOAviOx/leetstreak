@@ -8,7 +8,7 @@
     "dev": "vite",
     "build": "vite build --config vite.interceptor.config.ts && vite build",
     "typecheck": "tsc --noEmit",
-    "test": "node scripts/test-detect.ts && node scripts/test-sync.ts",
+    "test": "node scripts/test-detect.ts && node scripts/test-sync.ts && node scripts/test-streak.ts",
     "preview": "vite preview",
     "icons": "node scripts/generate-icons.mjs",
     "zip": "node scripts/zip.mjs"
