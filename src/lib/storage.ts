@@ -28,6 +28,7 @@ export const DEFAULT_SETTINGS: Settings = {
   branch: null,
   githubLogin: null,
   autoSync: true,
+  enabled: true,
 };
 
 export const DEFAULT_STATS: Stats = {
