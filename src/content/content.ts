@@ -8,13 +8,15 @@
  *   3. Host the on-page toast (added in Phase 4).
  */
 import { PAGE_MSG } from '../lib/types.ts';
-import type { PageMessage, RuntimeMessage } from '../lib/types.ts';
+import type { PageMessage, RuntimeMessage, BackgroundToContent } from '../lib/types.ts';
+import { showToast } from './toast.ts';
 
 const TRUSTED_ORIGIN = 'https://leetcode.com';
 
 console.log('[LeetStreak] content script running @', location.href);
 injectInterceptor();
 listenForAccepted();
+listenForToasts();
 
 /**
  * Load the interceptor into the page's MAIN world via a <script> tag. Because
@@ -64,6 +66,23 @@ function listenForAccepted(): void {
   });
 
   console.log('[LeetStreak] content bridge listening (ISOLATED world)');
+}
+
+/**
+ * Receive TOAST messages from the service worker and render them on the page.
+ * Returns false (no async response) so the message channel closes immediately.
+ */
+function listenForToasts(): void {
+  chrome.runtime.onMessage.addListener((message: BackgroundToContent) => {
+    if (message?.type === 'TOAST') {
+      try {
+        showToast(message);
+      } catch (err) {
+        console.error('[LeetStreak] toast render failed:', err);
+      }
+    }
+    return false;
+  });
 }
 
 export {};
