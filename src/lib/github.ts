@@ -98,8 +98,15 @@ async function errorFrom(res: Response): Promise<GitHubError> {
       const reset = Number(res.headers.get('x-ratelimit-reset') ?? 0) || undefined;
       return new GitHubError('GitHub rate limit reached.', 403, 'RATE_LIMIT', reset);
     }
+    // 403 here means the token reached the API but isn't authorized for this
+    // resource (e.g. GitHub's "Resource not accessible by personal access
+    // token"). The raw message doesn't say how to fix it, so append guidance
+    // that covers both flows: pushing files (Contents) and creating repos
+    // (Administration).
+    const permHint =
+      "Check the token's repository access includes this repo, and grant Contents: Read and write (Administration: Read and write is required to create repos).";
     return new GitHubError(
-      apiMessage || "Token lacks permission. It needs Contents: Read and write on this repo.",
+      apiMessage ? `${apiMessage} — ${permHint}` : `Token lacks permission. ${permHint}`,
       403,
       'FORBIDDEN',
     );
